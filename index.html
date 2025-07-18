@@ -173,7 +173,8 @@
 
         function startGameLoop() {
             clearInterval(gameLoop);
-            const speed = parseInt(speedSlider.value);
+            const sliderValue = parseInt(speedSlider.value);
+            const speed = 250 - sliderValue;
             gameLoop = setInterval(drawGame, speed);
         }
 
