@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image" href="snake.png" />
     <title>Snake Game</title>
     <style>
         body {
@@ -28,16 +27,21 @@
             margin-bottom: 10px;
         }
 
-        #speedControl {
+        #controls {
             margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
-        #speedControl label {
+        #controls label {
             margin-right: 10px;
             font-size: 18px;
         }
 
-        #speedSlider {
+        #speedSlider,
+        #sizeSlider {
             width: 200px;
         }
 
@@ -64,9 +68,15 @@
 </head>
 
 <body>
-    <div id="speedControl">
-        <label for="speedSlider">Speed:</label>
-        <input type="range" id="speedSlider" min="50" max="200" value="100">
+    <div id="controls">
+        <div>
+            <label for="speedSlider">Speed:</label>
+            <input type="range" id="speedSlider" min="50" max="200" value="100">
+        </div>
+        <div>
+            <label for="sizeSlider">Canvas Size:</label>
+            <input type="range" id="sizeSlider" min="300" max="700" step="30" value="600">
+        </div>
     </div>
     <div id="score">Score: 0</div>
     <canvas id="gameCanvas" width="600" height="600"></canvas>
@@ -83,9 +93,10 @@
         const gameOverScreen = document.getElementById('gameOver');
         const finalScoreDisplay = document.getElementById('finalScore');
         const speedSlider = document.getElementById('speedSlider');
+        const sizeSlider = document.getElementById('sizeSlider');
 
-        const gridSize = 20;
-        const tileCount = canvas.width / gridSize;
+        const tileCount = 20; // Fixed number of tiles
+        let gridSize = canvas.width / tileCount;
         let snake = [{ x: 10, y: 10 }];
         let food = { x: 15, y: 15 };
         let dx = 0;
@@ -156,6 +167,21 @@
             gameLoop = setInterval(drawGame, speed);
         }
 
+        function resizeCanvas() {
+            const newSize = parseInt(sizeSlider.value);
+            canvas.width = newSize;
+            canvas.height = newSize;
+            gridSize = newSize / tileCount;
+            // Ensure snake and food stay within bounds
+            snake = snake.map(segment => ({
+                x: Math.min(Math.max(segment.x, 0), tileCount - 1),
+                y: Math.min(Math.max(segment.y, 0), tileCount - 1)
+            }));
+            food.x = Math.min(Math.max(food.x, 0), tileCount - 1);
+            food.y = Math.min(Math.max(food.y, 0), tileCount - 1);
+            startGameLoop();
+        }
+
         function resetGame() {
             snake = [{ x: 10, y: 10 }];
             food = { x: 15, y: 15 };
@@ -164,7 +190,7 @@
             score = 0;
             scoreDisplay.textContent = `Score: ${score}`;
             gameOverScreen.style.display = 'none';
-            startGameLoop();
+            resizeCanvas();
         }
 
         document.addEventListener('keydown', e => {
@@ -185,6 +211,7 @@
         });
 
         speedSlider.addEventListener('input', startGameLoop);
+        sizeSlider.addEventListener('input', resizeCanvas);
 
         // Start the game
         resetGame();
