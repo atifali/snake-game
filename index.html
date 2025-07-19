@@ -22,31 +22,43 @@
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Semi-transparent background */
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            width: 300px;
+            /* Fixed width */
         }
 
         #controls label {
-            margin-right: 10px;
-            font-size: 18px;
+            margin-right: 8px;
+            font-size: 16px;
         }
 
         #speedSlider,
         #sizeSlider {
-            width: 200px;
+            width: 150px;
+            /* Smaller sliders for compact layout */
+        }
+
+        #gameContainer {
+            margin-top: 160px;
+            /* Fixed margin to position below controls */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         #score {
             font-size: 24px;
-            margin-top: 100px;
-            /* Space for fixed controls */
-            margin-bottom: 10px;
+            z-index: 5;
+            /* Ensure score is below controls */
         }
 
         #gameCanvas {
@@ -81,6 +93,12 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 
@@ -94,10 +112,24 @@
             <label for="sizeSlider">Canvas Size:</label>
             <input type="range" id="sizeSlider" min="300" max="900" step="30" value="600">
         </div>
+        <div class="color-control">
+            <label for="snakeColor">Snake:</label>
+            <input type="color" id="snakeColor" value="#2ecc71">
+        </div>
+        <div class="color-control">
+            <label for="foodColor">Food:</label>
+            <input type="color" id="foodColor" value="#e74c3c">
+        </div>
+        <div class="color-control">
+            <label for="backgroundColor">Background:</label>
+            <input type="color" id="backgroundColor" value="#ffffff">
+        </div>
     </div>
-    <div id="score">Score: 0</div>
-    <canvas id="gameCanvas" width="600" height="600"></canvas>
-    <button id="pauseButton" onclick="togglePause()">Pause</button>
+    <div id="gameContainer">
+        <div id="score">Score: 0</div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <button id="pauseButton" onclick="togglePause()">Pause</button>
+    </div>
     <div id="gameOver">
         <h2>Game Over</h2>
         <p>Your Score: <span id="finalScore"></span></p>
@@ -113,6 +145,9 @@
         const speedSlider = document.getElementById('speedSlider');
         const sizeSlider = document.getElementById('sizeSlider');
         const pauseButton = document.getElementById('pauseButton');
+        const snakeColorPicker = document.getElementById('snakeColor');
+        const foodColorPicker = document.getElementById('foodColor');
+        const backgroundColorPicker = document.getElementById('backgroundColor');
 
         const tileCount = 20; // Fixed number of tiles
         let gridSize = canvas.width / tileCount;
@@ -125,8 +160,8 @@
         let isPaused = false;
 
         function drawGame() {
-            // Clear canvas
-            ctx.fillStyle = '#fff';
+            // Clear canvas with selected background color
+            ctx.fillStyle = backgroundColorPicker.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Move snake
@@ -150,13 +185,13 @@
             }
 
             // Draw snake
-            ctx.fillStyle = '#2ecc71';
+            ctx.fillStyle = snakeColorPicker.value;
             snake.forEach(segment => {
                 ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
             });
 
             // Draw food
-            ctx.fillStyle = '#e74c3c';
+            ctx.fillStyle = foodColorPicker.value;
             ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
             // Check for collision with self
@@ -270,6 +305,12 @@
             if (!isPaused) startGameLoop();
         });
         sizeSlider.addEventListener('input', resizeCanvas);
+        snakeColorPicker.addEventListener('input', drawGame);
+        foodColorPicker.addEventListener('input', drawGame);
+        backgroundColorPicker.addEventListener('input', () => {
+            canvas.style.backgroundColor = backgroundColorPicker.value;
+            drawGame();
+        });
 
         // Start the game
         resetGame();
