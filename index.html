@@ -68,6 +68,13 @@
             z-index: 20;
         }
 
+        #pauseButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         button {
             margin-top: 10px;
             padding: 10px 20px;
@@ -90,6 +97,7 @@
     </div>
     <div id="score">Score: 0</div>
     <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <button id="pauseButton" onclick="togglePause()">Pause</button>
     <div id="gameOver">
         <h2>Game Over</h2>
         <p>Your Score: <span id="finalScore"></span></p>
@@ -104,6 +112,7 @@
         const finalScoreDisplay = document.getElementById('finalScore');
         const speedSlider = document.getElementById('speedSlider');
         const sizeSlider = document.getElementById('sizeSlider');
+        const pauseButton = document.getElementById('pauseButton');
 
         const tileCount = 20; // Fixed number of tiles
         let gridSize = canvas.width / tileCount;
@@ -113,6 +122,7 @@
         let dy = 0;
         let score = 0;
         let gameLoop;
+        let isPaused = false;
 
         function drawGame() {
             // Clear canvas
@@ -154,6 +164,16 @@
                 gameOver();
                 return;
             }
+
+            // Draw paused message if paused
+            if (isPaused) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#fff';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);
+            }
         }
 
         function generateFood() {
@@ -169,13 +189,27 @@
             clearInterval(gameLoop);
             finalScoreDisplay.textContent = score;
             gameOverScreen.style.display = 'block';
+            pauseButton.style.display = 'none';
         }
 
         function startGameLoop() {
             clearInterval(gameLoop);
             const sliderValue = parseInt(speedSlider.value);
-            const speed = 250 - sliderValue;
+            // Invert speed logic: map slider (50-200) to interval (200-50ms)
+            const speed = 250 - sliderValue; // Higher slider value = lower interval = faster
             gameLoop = setInterval(drawGame, speed);
+        }
+
+        function togglePause() {
+            if (gameOverScreen.style.display === 'block') return; // Ignore if game over
+            isPaused = !isPaused;
+            pauseButton.textContent = isPaused ? 'Resume' : 'Pause';
+            if (isPaused) {
+                clearInterval(gameLoop);
+                drawGame(); // Redraw to show paused message
+            } else {
+                startGameLoop();
+            }
         }
 
         function resizeCanvas() {
@@ -190,7 +224,11 @@
             }));
             food.x = Math.min(Math.max(food.x, 0), tileCount - 1);
             food.y = Math.min(Math.max(food.y, 0), tileCount - 1);
-            startGameLoop();
+            if (!isPaused) {
+                startGameLoop();
+            } else {
+                drawGame(); // Redraw to update paused state
+            }
         }
 
         function resetGame() {
@@ -199,29 +237,38 @@
             dx = 0;
             dy = 0;
             score = 0;
+            isPaused = false;
+            pauseButton.textContent = 'Pause';
+            pauseButton.style.display = 'block';
             scoreDisplay.textContent = `Score: ${score}`;
             gameOverScreen.style.display = 'none';
             resizeCanvas();
         }
 
         document.addEventListener('keydown', e => {
-            switch (e.key) {
-                case 'ArrowUp':
-                    if (dy === 0) { dx = 0; dy = -1; }
-                    break;
-                case 'ArrowDown':
-                    if (dy === 0) { dx = 0; dy = 1; }
-                    break;
-                case 'ArrowLeft':
-                    if (dx === 0) { dx = -1; dy = 0; }
-                    break;
-                case 'ArrowRight':
-                    if (dx === 0) { dx = 1; dy = 0; }
-                    break;
+            if (e.key === ' ') { // Spacebar to toggle pause
+                togglePause();
+            } else if (!isPaused) {
+                switch (e.key) {
+                    case 'ArrowUp':
+                        if (dy === 0) { dx = 0; dy = -1; }
+                        break;
+                    case 'ArrowDown':
+                        if (dy === 0) { dx = 0; dy = 1; }
+                        break;
+                    case 'ArrowLeft':
+                        if (dx === 0) { dx = -1; dy = 0; }
+                        break;
+                    case 'ArrowRight':
+                        if (dx === 0) { dx = 1; dy = 0; }
+                        break;
+                }
             }
         });
 
-        speedSlider.addEventListener('input', startGameLoop);
+        speedSlider.addEventListener('input', () => {
+            if (!isPaused) startGameLoop();
+        });
         sizeSlider.addEventListener('input', resizeCanvas);
 
         // Start the game
