@@ -20,25 +20,36 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
             z-index: 10;
+            width: 250px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-            width: 250px;
+            gap: 12px;
         }
 
-        #controls label {
-            margin-right: 8px;
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .control-row label {
             font-size: 16px;
+            color: #333;
+            width: 100px;
+            /* Fixed width for consistent label alignment */
+            text-align: left;
         }
 
-        #speedSlider,
-        #sizeSlider {
-            width: 150px;
+        .control-row input[type="range"],
+        .control-row input[type="color"],
+        .control-row input[type="checkbox"] {
+            width: 120px;
+            /* Fixed width for controls */
         }
 
         #gameContainer {
@@ -77,6 +88,14 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+
+        #pauseButton:hover {
+            background-color: #e0e0e0;
         }
 
         button {
@@ -84,40 +103,41 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #fff;
+            transition: background-color 0.2s;
         }
 
-        .color-control,
-        .checkbox-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        button:hover {
+            background-color: #e0e0e0;
         }
     </style>
 </head>
 
 <body>
     <div id="controls">
-        <div>
+        <div class="control-row">
             <label for="speedSlider">Speed:</label>
             <input type="range" id="speedSlider" min="50" max="200" value="100">
         </div>
-        <div>
+        <div class="control-row">
             <label for="sizeSlider">Canvas Size:</label>
             <input type="range" id="sizeSlider" min="300" max="900" step="30" value="600">
         </div>
-        <div class="color-control">
-            <label for="snakeColor">Snake:</label>
+        <div class="control-row">
+            <label for="snakeColor">Snake Color:</label>
             <input type="color" id="snakeColor" value="#2ecc71">
         </div>
-        <div class="color-control">
-            <label for="foodColor">Food:</label>
+        <div class="control-row">
+            <label for="foodColor">Food Color:</label>
             <input type="color" id="foodColor" value="#e74c3c">
         </div>
-        <div class="color-control">
+        <div class="control-row">
             <label for="backgroundColor">Background:</label>
             <input type="color" id="backgroundColor" value="#ffffff">
         </div>
-        <div class="checkbox-control">
+        <div class="control-row">
             <label for="obstaclesToggle">Obstacles:</label>
             <input type="checkbox" id="obstaclesToggle">
         </div>
