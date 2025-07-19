@@ -21,7 +21,6 @@
             top: 10px;
             right: 10px;
             background-color: rgba(255, 255, 255, 0.9);
-            /* Semi-transparent background */
             padding: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 10;
@@ -30,7 +29,6 @@
             align-items: flex-start;
             gap: 8px;
             width: 250px;
-            /* Adjusted width */
         }
 
         #controls label {
@@ -41,7 +39,6 @@
         #speedSlider,
         #sizeSlider {
             width: 150px;
-            /* Smaller sliders for compact layout */
         }
 
         #gameContainer {
@@ -89,7 +86,8 @@
             cursor: pointer;
         }
 
-        .color-control {
+        .color-control,
+        .checkbox-control {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -119,6 +117,10 @@
             <label for="backgroundColor">Background:</label>
             <input type="color" id="backgroundColor" value="#ffffff">
         </div>
+        <div class="checkbox-control">
+            <label for="obstaclesToggle">Obstacles:</label>
+            <input type="checkbox" id="obstaclesToggle">
+        </div>
     </div>
     <div id="gameContainer">
         <div id="score">Score: 0</div>
@@ -143,16 +145,38 @@
         const snakeColorPicker = document.getElementById('snakeColor');
         const foodColorPicker = document.getElementById('foodColor');
         const backgroundColorPicker = document.getElementById('backgroundColor');
+        const obstaclesToggle = document.getElementById('obstaclesToggle');
 
         const tileCount = 20; // Fixed number of tiles
         let gridSize = canvas.width / tileCount;
         let snake = [{ x: 10, y: 10 }];
         let food = { x: 15, y: 15 };
+        let obstacles = [];
         let dx = 0;
         let dy = 0;
         let score = 0;
         let gameLoop;
         let isPaused = false;
+
+        function generateObstacles() {
+            obstacles = [];
+            if (obstaclesToggle.checked) {
+                const numObstacles = 5; // Fixed number of obstacles
+                for (let i = 0; i < numObstacles; i++) {
+                    let obstacle;
+                    do {
+                        obstacle = {
+                            x: Math.floor(Math.random() * tileCount),
+                            y: Math.floor(Math.random() * tileCount)
+                        };
+                    } while (
+                        snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
+                        (obstacle.x === food.x && obstacle.y === food.y)
+                    );
+                    obstacles.push(obstacle);
+                }
+            }
+        }
 
         function drawGame() {
             // Clear canvas with selected background color
@@ -179,6 +203,15 @@
                 snake.pop();
             }
 
+            // Check for collision with self or obstacles
+            if (
+                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y) ||
+                (obstaclesToggle.checked && obstacles.some(obstacle => obstacle.x === head.x && obstacle.y === head.y))
+            ) {
+                gameOver();
+                return;
+            }
+
             // Draw snake
             ctx.fillStyle = snakeColorPicker.value;
             snake.forEach(segment => {
@@ -189,10 +222,12 @@
             ctx.fillStyle = foodColorPicker.value;
             ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 
-            // Check for collision with self
-            if (snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)) {
-                gameOver();
-                return;
+            // Draw obstacles
+            if (obstaclesToggle.checked) {
+                ctx.fillStyle = '#808080'; // Grey for obstacles
+                obstacles.forEach(obstacle => {
+                    ctx.fillRect(obstacle.x * gridSize, obstacle.y * gridSize, gridSize - 2, gridSize - 2);
+                });
             }
 
             // Draw paused message if paused
@@ -209,8 +244,11 @@
         function generateFood() {
             food.x = Math.floor(Math.random() * tileCount);
             food.y = Math.floor(Math.random() * tileCount);
-            // Ensure food doesn't spawn on snake
-            if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+            // Ensure food doesn't spawn on snake or obstacles
+            if (
+                snake.some(segment => segment.x === food.x && segment.y === food.y) ||
+                (obstaclesToggle.checked && obstacles.some(obstacle => obstacle.x === food.x && obstacle.y === food.y))
+            ) {
                 generateFood();
             }
         }
@@ -254,6 +292,7 @@
             }));
             food.x = Math.min(Math.max(food.x, 0), tileCount - 1);
             food.y = Math.min(Math.max(food.y, 0), tileCount - 1);
+            generateObstacles(); // Regenerate obstacles for new canvas size
             if (!isPaused) {
                 startGameLoop();
             } else {
@@ -272,6 +311,7 @@
             pauseButton.style.display = 'block';
             scoreDisplay.textContent = `Score: ${score}`;
             gameOverScreen.style.display = 'none';
+            generateObstacles();
             resizeCanvas();
         }
 
@@ -304,6 +344,10 @@
         foodColorPicker.addEventListener('input', drawGame);
         backgroundColorPicker.addEventListener('input', () => {
             canvas.style.backgroundColor = backgroundColorPicker.value;
+            drawGame();
+        });
+        obstaclesToggle.addEventListener('input', () => {
+            generateObstacles();
             drawGame();
         });
 
